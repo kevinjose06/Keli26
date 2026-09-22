@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin:0; padding:0; background-color:#f4f4f5; font-family:Arial, Helvetica, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f4f5; width:100%; padding: 20px 10px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Wrapper -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px; background-color:#ffffff; border-radius:12px; border:1px solid #e4e4e7; overflow:hidden;">
+          
+          <!-- Header Banner (Dark Navy inline background + explicit white text) -->
+          <tr>
+            <td align="center" style="background-color:#0f172a; padding:32px 20px; text-align:center;">
+              <h1 style="margin:0; font-size:28px; font-weight:800; color:#ffffff !important; letter-spacing:4px; text-transform:uppercase; font-family:Arial, sans-serif;">KELI 2026</h1>
+              <p style="margin:6px 0 0 0; font-size:12px; font-weight:600; color:#cbd5e1 !important; letter-spacing:2px; text-transform:uppercase; font-family:Arial, sans-serif;">GEC RIT KOTTAYAM &middot; ARTS FEST</p>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 28px 24px;">
+              
+              <!-- Greeting -->
+              <h2 style="margin:0 0 12px 0; font-size:18px; font-weight:700; color:#111827 !important; font-family:Arial, sans-serif;">
+                Hi <?= studentName ?>,
+              </h2>
+
+              <!-- Subtext (BOLD DARK GREY #1f2937 - 100% READABLE ON WHITE & DARK BACKGROUNDS) -->
+              <p style="margin:0 0 24px 0; font-size:15px; line-height:1.6; font-weight:600; color:#1f2937 !important; font-family:Arial, sans-serif;">
+                Your pro-show passes are attached as QR code images to this email. Please show the respective QR code image on your phone at the entrance gate for entry on each night.
+              </p>
+
+              <!-- Ticket 1 -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#0f172a; border-radius:10px; margin-bottom:16px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:2px; color:#c084fc !important; font-weight:700; margin-bottom:6px; font-family:Arial, sans-serif;">
+                      Day 1 Pass &middot; September 25
+                    </div>
+                    <div style="font-family:'Courier New', monospace; font-size:26px; font-weight:bold; letter-spacing:4px; color:#ffffff !important;">
+                      <?= day1Id ?>
+                    </div>
+                    <div style="font-size:12px; color:#94a3b8 !important; margin-top:6px; font-family:Arial, sans-serif;">
+                      Attached QR: <?= day1Id ?>.png
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Ticket 2 -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#0f172a; border-radius:10px; margin-bottom:24px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:2px; color:#c084fc !important; font-weight:700; margin-bottom:6px; font-family:Arial, sans-serif;">
+                      Day 2 Pass &middot; September 26
+                    </div>
+                    <div style="font-family:'Courier New', monospace; font-size:26px; font-weight:bold; letter-spacing:4px; color:#ffffff !important;">
+                      <?= day2Id ?>
+                    </div>
+                    <div style="font-size:12px; color:#94a3b8 !important; margin-top:6px; font-family:Arial, sans-serif;">
+                      Attached QR: <?= day2Id ?>.png
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Warning Callout Box (Bold Dark Text on Light Yellow background) -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#fffbe6; border:1px solid #ffe58f; border-left:4px solid #faad14; border-radius:8px;">
+                <tr>
+                  <td style="padding: 14px 18px; font-size:13px; color:#78350f !important; line-height:1.6; font-weight:600; font-family:Arial, sans-serif;">
+                    ⚠️ <strong>Important Security Notice:</strong><br>
+                    Do not share these tickets or forward this email. Each QR code is unique to you and will be automatically invalidated after its first scan at the gate. Duplicate or forwarded tickets will be denied entry.
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color:#f8fafc; padding:18px 20px; border-top:1px solid #e2e8f0; text-align:center; font-size:12px; color:#475569 !important; font-weight:600; font-family:Arial, sans-serif;">
+              KELI 2026 &middot; GEC RIT Kottayam Student Union
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

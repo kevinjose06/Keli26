@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+server.key
+server.cert
+keli.db
+keli_backup.db
+app/
