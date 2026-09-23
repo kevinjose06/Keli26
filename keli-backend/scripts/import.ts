@@ -2,12 +2,17 @@ import * as XLSX from "xlsx";
 import path from "path";
 import fs   from "fs";
 
-const DB_PATH   = path.join(__dirname, "../keli.db");
-const XLSX_PATH = process.argv[2]
-  || path.join(__dirname, "../../python/output/processed.xlsx");
+const DB_PATH    = path.join(__dirname, "../keli.db");
+const CSV_PATH   = path.join(__dirname, "../../python/output/db_import.csv");
+const XLSX_PATH  = path.join(__dirname, "../../python/output/processed.xlsx");
 
-if (!fs.existsSync(XLSX_PATH)) {
-  console.error(`[FATAL] File not found: ${XLSX_PATH}`);
+// Use the file provided as an argument, or auto-detect: prefer the clean CSV
+const INPUT_PATH = process.argv[2]
+  || (fs.existsSync(CSV_PATH) ? CSV_PATH : XLSX_PATH);
+
+if (!fs.existsSync(INPUT_PATH)) {
+  console.error(`[FATAL] File not found: ${INPUT_PATH}`);
+  console.error("  Run the Python script first: cd ../python && python process_students.py");
   process.exit(1);
 }
 
@@ -38,11 +43,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_day2 ON tickets(day2);
 `);
 
-const workbook = XLSX.readFile(XLSX_PATH);
+const workbook = XLSX.readFile(INPUT_PATH);
 const sheet    = workbook.Sheets[workbook.SheetNames[0]];
 const rows     = XLSX.utils.sheet_to_json(sheet) as any[];
 
-console.log(`Found ${rows.length} rows in XLSX...`);
+console.log(`Reading: ${INPUT_PATH}`);
+console.log(`Found ${rows.length} rows...`);
 
 const existing = (db.prepare("SELECT COUNT(*) as c FROM tickets").get() as any).c;
 if (existing > 0) {

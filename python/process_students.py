@@ -207,6 +207,19 @@ def main():
     print(f"✓ {len(combined) * 2} QR codes → {QR_DIR}/")
     print(f"✓ Combined Output → {output_path}")
     print(f"✓ Multi-Tab Year Output → {by_year_path}")
+
+    # ── Export clean CSV for database import ──────────────────────────
+    # Contains ONLY the columns the scanner database needs.
+    # The day1 and day2 values are the exact QR code strings that will
+    # be scanned. Import this into the backend with: npm run import
+    db_csv_path = OUTPUT_DIR / "db_import.csv"
+    db_cols = ["Name", "Email", "Dept", "Year", "Program", "Group", "day1", "day2"]
+    db_df = combined[db_cols].copy()
+    db_df.columns = ["name", "email", "dept", "year", "program", "group_code", "day1", "day2"]
+    db_df.to_csv(db_csv_path, index=False)
+    print(f"✓ DB Import CSV    → {db_csv_path}")
+    print(f"  (Import into scanner DB with: cd ../keli-backend && npm run import)")
+
     print(f"\nNext Steps:")
     print(f"  1. Upload '{QR_DIR}/' folder to Google Drive as 'keli-qr-codes'")
     print(f"  2. Import '{by_year_path}' into Google Sheets (creates tabs: Year 1, Year 2, Year 3, Year 4, Year 5)")

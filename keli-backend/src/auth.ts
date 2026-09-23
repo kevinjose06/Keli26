@@ -13,11 +13,12 @@ function loadCredentials(): Record<string, string> {
   );
 }
 
-const CREDENTIALS = loadCredentials();
-
 export function login(req: Request, res: Response): void {
   const secret = process.env.JWT_SECRET || "fallback_secret";
   const { username, password } = req.body as { username: string; password: string };
+  
+  const CREDENTIALS = loadCredentials();
+  
   if (!username || !password || CREDENTIALS[username] !== password) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
