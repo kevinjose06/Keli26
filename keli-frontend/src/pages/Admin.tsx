@@ -20,8 +20,11 @@ export default function Admin() {
     return () => clearInterval(interval);
   }, []);
 
-  function handleLogout() {
+  async function handleLogout() {
     clientLogger.info("LOGOUT", "Admin user logged out");
+    try {
+      await api.logout();
+    } catch {}
     safeStorage.removeItem("keli_token");
     safeStorage.removeItem("keli_username");
     navigate("/login", { replace: true });

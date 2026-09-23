@@ -5,7 +5,7 @@ import path       from "path";
 import cors       from "cors";
 import dotenv     from "dotenv";
 import ticketRoutes from "./routes/tickets";
-import { login }  from "./auth";
+import { login, logout, requireAuth }  from "./auth";
 import { requestLogger, logInfo, logError } from "./logger";
 
 dotenv.config();
@@ -30,6 +30,7 @@ if (fs.existsSync(frontendPath)) {
 }
 
 app.post("/api/auth/login", login);
+app.post("/api/auth/logout", requireAuth, logout);
 app.use("/api/tickets", ticketRoutes);
 
 app.get("*", (_req: Request, res: Response) => {

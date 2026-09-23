@@ -22,7 +22,7 @@ axios.interceptors.request.use(
   }
 );
 
-// Axios Response Interceptor for logging
+// Axios Response Interceptor for logging and automatic session expiry handling
 axios.interceptors.response.use(
   (response) => {
     const startTime = (response.config as any).metadata?.startTime || Date.now();
@@ -38,11 +38,28 @@ axios.interceptors.response.use(
     const startTime = (error.config as any)?.metadata?.startTime || Date.now();
     const duration = Date.now() - startTime;
     const status = error.response?.status || "NET_ERR";
+    const errorData = error.response?.data;
+
     clientLogger.error(
       "API ERR",
       `${error.config?.method?.toUpperCase()} ${error.config?.url} [${status}] (${duration}ms) - ${error.message}`,
-      error.response?.data || error
+      errorData || error
     );
+
+    // Auto-kick if session was overridden by another device or expired
+    if (status === 401 && !error.config?.url?.includes("/auth/login")) {
+      const isOverridden = errorData?.code === "SESSION_OVERRIDDEN";
+      safeStorage.removeItem("keli_token");
+      safeStorage.removeItem("keli_username");
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        const msg = isOverridden
+          ? "This account has logged in on another device. You have been logged out."
+          : "Session expired. Please log in again.";
+        alert(msg);
+        window.location.href = "/login";
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -50,6 +67,9 @@ axios.interceptors.response.use(
 export const api = {
   login: (username: string, password: string) =>
     axios.post(`${BASE}/auth/login`, { username, password }),
+
+  logout: () =>
+    axios.post(`${BASE}/auth/logout`, {}, { headers: authHeader() }),
 
   // Single call — verify + scan in one round trip, eliminates extra network lag
   scanAndVerify: (ticketId: string, day: number) =>

@@ -35,9 +35,12 @@ export default function Scanner() {
     };
   }, [day]);
 
-  function handleLogout() {
+  async function handleLogout() {
     clientLogger.info("LOGOUT", `User '${username}' logging out`);
     stopCamera();
+    try {
+      await api.logout();
+    } catch {}
     safeStorage.removeItem("keli_token");
     safeStorage.removeItem("keli_username");
     navigate("/login", { replace: true });
