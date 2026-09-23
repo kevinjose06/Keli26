@@ -21,7 +21,7 @@ export default defineConfig({
     } : {}),
     proxy: {
       "/api": {
-        target:       hasCerts ? "https://localhost:3000" : "http://localhost:3000",
+        target:       hasCerts ? "https://127.0.0.1:3000" : "http://127.0.0.1:3000",
         secure:       false,
         changeOrigin: true,
       },
