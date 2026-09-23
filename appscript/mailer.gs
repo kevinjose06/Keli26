@@ -120,8 +120,15 @@ function processTabByName(tabName) {
       GmailApp.sendEmail(
         email,
         "KELI 2026 - Your Pro-Show Tickets",
-        `Hi ${name}, your KELI 2026 tickets are attached. Day 1: ${day1Id} | Day 2: ${day2Id}`,
-        { htmlBody: body, attachments: [day1QR, day2QR], name: "KELI 2026" }
+        `Hi ${name}, your KELI 2026 tickets are ready. Day 1: ${day1Id} | Day 2: ${day2Id}`,
+        {
+          htmlBody: body,
+          inlineImages: {
+            day1QR: day1QR,
+            day2QR: day2QR
+          },
+          name: "KELI 2026"
+        }
       );
 
       sheet.getRange(i + 1, C.status + 1).setValue("sent");
@@ -207,8 +214,15 @@ function sendSelectedRow() {
     GmailApp.sendEmail(
       email,
       "KELI 2026 - Your Pro-Show Tickets",
-      `Hi ${name}, your KELI 2026 tickets are attached. Day 1: ${day1Id} | Day 2: ${day2Id}`,
-      { htmlBody: body, attachments: [day1QR, day2QR], name: "KELI 2026" }
+      `Hi ${name}, your KELI 2026 tickets are ready. Day 1: ${day1Id} | Day 2: ${day2Id}`,
+      {
+        htmlBody: body,
+        inlineImages: {
+          day1QR: day1QR,
+          day2QR: day2QR
+        },
+        name: "KELI 2026"
+      }
     );
 
     sheet.getRange(rowNum, C.status + 1).setValue("sent");
