@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/pages/admin.tsx","./src/pages/login.tsx","./src/pages/scanner.tsx"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/components/errorboundary.tsx","./src/components/routelogger.tsx","./src/pages/admin.tsx","./src/pages/login.tsx","./src/pages/scanner.tsx","./src/utils/logger.ts","./src/utils/storage.ts"],"version":"5.9.3"}

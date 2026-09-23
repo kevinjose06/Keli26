@@ -1,25 +1,21 @@
 import { Router, Request, Response } from "express";
 import db from "../db";
 import { requireAuth } from "../auth";
+import { logInfo, logWarn, logError } from "../logger";
 
 const router = Router();
 
 // ── POST /api/tickets/scan-and-verify ────────────────────────────
-//
-// Single-call endpoint: verify + mark scanned in one round trip.
-// Replaces the original two-call pattern (verify then scan) to
-// eliminate the extra network round trip and reduce gate lag.
-//
-// Concurrency safety: the UPDATE only fires if day{N}_scanned = 0.
-// SQLite's write lock guarantees that if two scanner phones hit
-// this simultaneously with the same ticket, only one UPDATE succeeds.
-// The other sees changes = 0 and returns already_scanned.
 
 router.post("/scan-and-verify", requireAuth, (req: Request, res: Response) => {
   const { ticketId, day } = req.body as { ticketId: string; day: number };
   const scannerId = (req as any).username as string;
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+
+  logInfo("SCAN REQ", `Scanner '${scannerId}' from IP ${ip} submitted ticketId '${ticketId}' for Day ${day}`);
 
   if (!ticketId || ![1, 2].includes(Number(day))) {
+    logWarn("SCAN INVALID PARAM", `Invalid params: ticketId='${ticketId}', day='${day}'`);
     res.status(400).json({ error: "ticketId and day (1 or 2) required" });
     return;
   }
@@ -32,11 +28,17 @@ router.post("/scan-and-verify", requireAuth, (req: Request, res: Response) => {
   ).get(ticketId);
 
   if (!existing) {
+    logWarn("SCAN NOT FOUND", `Ticket ID '${ticketId}' not found in database for Day ${day} (Scanner: ${scannerId})`);
     res.json({ status: "invalid" });
     return;
   }
 
   if (existing[`${field}_scanned`] === 1) {
+    logWarn(
+      "SCAN DUPLICATE",
+      `Ticket '${ticketId}' (${existing.name}) ALREADY USED on Day ${day}. ` +
+      `Prev scanned by '${existing[`${field}_scanned_by`] || "unknown"}' at ${existing[`${field}_scanned_at`]}`
+    );
     res.json({
       status:     "already_scanned",
       name:       existing.name,
@@ -60,6 +62,9 @@ router.post("/scan-and-verify", requireAuth, (req: Request, res: Response) => {
     const updated: any = db.prepare(
       `SELECT * FROM tickets WHERE ${field} = ?`
     ).get(ticketId);
+
+    logWarn("SCAN RACE DUPLICATE", `Concurrent scan race lost for ticket '${ticketId}' (${existing.name})`);
+
     res.json({
       status:     "already_scanned",
       name:       updated.name,
@@ -68,6 +73,12 @@ router.post("/scan-and-verify", requireAuth, (req: Request, res: Response) => {
     });
     return;
   }
+
+  logInfo(
+    "SCAN VALID SUCCESS",
+    `✓ VALID PASS: Ticket '${ticketId}' -> Name: '${existing.name}', Dept: '${existing.dept}', ` +
+    `Prog: '${existing.program}', Year: '${existing.year}' (Scanned by: '${scannerId}')`
+  );
 
   res.json({
     status:  "success",
@@ -79,9 +90,11 @@ router.post("/scan-and-verify", requireAuth, (req: Request, res: Response) => {
 });
 
 // ── GET /api/tickets/stats ────────────────────────────────────────
-// Live scan counts — polled by admin dashboard every 5 seconds
 
-router.get("/stats", requireAuth, (_req: Request, res: Response) => {
+router.get("/stats", requireAuth, (req: Request, res: Response) => {
+  const scannerId = (req as any).username;
+  logInfo("STATS FETCH", `Stats fetched by user '${scannerId}'`);
+
   const total       = (db.prepare("SELECT COUNT(*) as c FROM tickets").get() as any).c;
   const day1Scanned = (db.prepare("SELECT COUNT(*) as c FROM tickets WHERE day1_scanned = 1").get() as any).c;
   const day2Scanned = (db.prepare("SELECT COUNT(*) as c FROM tickets WHERE day2_scanned = 1").get() as any).c;
@@ -99,11 +112,13 @@ router.get("/stats", requireAuth, (_req: Request, res: Response) => {
 });
 
 // ── GET /api/tickets ──────────────────────────────────────────────
-// Admin: full ticket list with optional search
 
 router.get("/", requireAuth, (req: Request, res: Response) => {
-  const q     = req.query.q as string | undefined;
-  const limit = parseInt(req.query.limit as string) || 100;
+  const q         = req.query.q as string | undefined;
+  const limit     = parseInt(req.query.limit as string) || 100;
+  const scannerId = (req as any).username;
+
+  logInfo("SEARCH REQ", `User '${scannerId}' searched query: '${q || "<all>"}' (limit: ${limit})`);
 
   const rows = q
     ? db.prepare(`
@@ -113,14 +128,17 @@ router.get("/", requireAuth, (req: Request, res: Response) => {
       `).all(`%${q}%`, `%${q}%`, q, q, limit)
     : db.prepare("SELECT * FROM tickets LIMIT ?").all(limit);
 
+  logInfo("SEARCH RESULT", `Search query '${q || "<all>"}' returned ${rows.length} records`);
+
   res.json(rows);
 });
 
 // ── PATCH /api/tickets/:id ────────────────────────────────────────
-// Admin: manual override for edge cases at the gate
 
 router.patch("/:id", requireAuth, (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { id }    = req.params;
+  const scannerId = (req as any).username;
+
   const allowed = [
     "day1_scanned", "day1_scanned_at", "day1_scanned_by",
     "day2_scanned", "day2_scanned_at", "day2_scanned_by",
@@ -128,21 +146,26 @@ router.patch("/:id", requireAuth, (req: Request, res: Response) => {
 
   const updates = Object.entries(req.body).filter(([k]) => allowed.includes(k));
   if (updates.length === 0) {
+    logWarn("OVERRIDE REJECTED", `User '${scannerId}' attempt to override ID ${id} with no valid fields`);
     res.status(400).json({ error: "No valid fields to update" });
     return;
   }
+
+  logInfo("OVERRIDE EXEC", `User '${scannerId}' overriding ticket record ID ${id}: ${JSON.stringify(req.body)}`);
 
   const sets = updates.map(([k]) => `${k} = ?`).join(", ");
   const vals = updates.map(([, v]) => v);
   db.prepare(`UPDATE tickets SET ${sets} WHERE id = ?`).run(...vals, id);
 
-  res.json(db.prepare("SELECT * FROM tickets WHERE id = ?").get(id));
+  const updatedRecord = db.prepare("SELECT * FROM tickets WHERE id = ?").get(id);
+  res.json(updatedRecord);
 });
 
 // ── GET /api/ping ─────────────────────────────────────────────────
-// Health check — scanner frontend calls this on load to confirm backend is alive
 
-router.get("/ping", requireAuth, (_req: Request, res: Response) => {
+router.get("/ping", requireAuth, (req: Request, res: Response) => {
+  const scannerId = (req as any).username;
+  logInfo("PING", `Ping received from scanner '${scannerId}'`);
   res.json({ ok: true, time: new Date().toISOString() });
 });
 
