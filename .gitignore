@@ -1,0 +1,44 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# === Node / npm ===
+node_modules/
+dist/
+*.tsbuildinfo
+
+# === Environment & Secrets ===
+.env
+*.env
+
+# === TLS Certificates ===
+server.key
+server.cert
+cert.pfx
+
+# === Database ===
+keli.db
+keli.db-shm
+keli.db-wal
+keli_backup.db
+
+# === Generated Output (Python pipeline) ===
+python/input/*.xlsx
+python/input/*.xls
+python/output/*.xlsx
+python/output/*.xls
+python/output/*.csv
+python/output/qr/
+
+# === Built Frontend (served from backend) ===
+keli-backend/app/
+
+# === OS / Editor ===
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
